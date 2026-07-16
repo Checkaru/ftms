@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Print stylesheet — reports are printed and filed; keep them clean. */
+@media print {
+    /* Chrome that has no place on paper. */
+    nav,
+    header,
+    .print\:hidden,
+    [x-cloak] {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 12px;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    /* Flatten cards: no shadows or tinted backgrounds on paper. */
+    .shadow-sm,
+    .shadow {
+        box-shadow: none !important;
+    }
+
+    .bg-gray-100,
+    .bg-gray-50,
+    .bg-white {
+        background: #fff !important;
+    }
+
+    /* Rule tables so they read without the grey banding. */
+    table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+
+    th,
+    td {
+        border: 1px solid #d1d5db !important;
+        padding: 4px 8px !important;
+    }
+
+    thead {
+        display: table-header-group; /* repeat header on every page */
+    }
+
+    tr {
+        break-inside: avoid;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+}
