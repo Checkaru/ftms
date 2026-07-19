@@ -112,6 +112,7 @@ Route::middleware(['auth', 'role:student,field_supervisor,academic_supervisor,co
         Route::get('new', [ConversationController::class, 'create'])->name('create');
         Route::post('new', [ConversationController::class, 'storeDm'])->name('storeDm');
         Route::get('placement/{placement}', [ConversationController::class, 'openPlacementThread'])->name('placement');
+        Route::get('{conversation}/poll', [ConversationController::class, 'poll'])->name('poll');
         Route::get('{conversation}', [ConversationController::class, 'show'])->name('show');
         Route::post('{conversation}', [MessageController::class, 'store'])->name('store');
     });

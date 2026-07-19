@@ -26,14 +26,32 @@
     <div class="py-8">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            <!-- Thread -->
-            <div class="bg-white shadow-sm rounded-lg p-5 space-y-3">
+            <!-- Thread: server-rendered history + polled live additions -->
+            <div class="bg-white shadow-sm rounded-lg p-5 space-y-3"
+                 x-data="{
+                    incoming: [],
+                    lastId: {{ $messages->last()?->id ?? 0 }},
+                    async poll() {
+                        if (document.hidden) return;
+                        try {
+                            const r = await fetch('{{ route('messages.poll', $conversation) }}?after=' + this.lastId,
+                                                  { headers: { 'Accept': 'application/json' } });
+                            if (!r.ok) return;
+                            const data = await r.json();
+                            for (const m of data.messages) {
+                                if (m.id > this.lastId) { this.incoming.push(m); this.lastId = m.id; }
+                            }
+                        } catch (e) { /* offline blip — try again next tick */ }
+                    }
+                 }"
+                 x-init="setInterval(() => poll(), 5000)">
+
                 @forelse ($messages as $message)
                     @php $mine = $message->sender_id === $me->id; @endphp
                     <div class="flex {{ $mine ? 'justify-start' : 'justify-end' }}">
                         <div class="max-w-[80%] rounded-lg px-4 py-2 {{ $mine ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800' }}">
                             @unless ($mine)
-                                <div class="text-xs font-medium {{ $mine ? 'text-indigo-200' : 'text-gray-500' }}">
+                                <div class="text-xs font-medium text-gray-500">
                                     {{ $message->sender?->name ?? 'مستخدم محذوف' }}
                                     @if ($message->sender)
                                         · {{ $message->sender->role->label() }}
@@ -47,8 +65,21 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-center text-gray-400 py-6">لا رسائل بعد — ابدأ الحوار.</p>
+                    <p class="text-center text-gray-400 py-6" x-show="incoming.length === 0">لا رسائل بعد — ابدأ الحوار.</p>
                 @endforelse
+
+                <template x-for="m in incoming" :key="m.id">
+                    <div class="flex" :class="m.mine ? 'justify-start' : 'justify-end'">
+                        <div class="max-w-[80%] rounded-lg px-4 py-2"
+                             :class="m.mine ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800'">
+                            <div class="text-xs font-medium text-gray-500" x-show="!m.mine"
+                                 x-text="m.sender + (m.role ? ' · ' + m.role : '')"></div>
+                            <div class="whitespace-pre-line break-words text-sm mt-0.5" x-text="m.body"></div>
+                            <div class="text-[11px] mt-1" :class="m.mine ? 'text-indigo-200' : 'text-gray-400'"
+                                 x-text="m.time"></div>
+                        </div>
+                    </div>
+                </template>
             </div>
 
             <!-- Composer -->

@@ -8,7 +8,9 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Placement;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ConversationController extends Controller
@@ -65,6 +67,40 @@ class ConversationController extends Controller
         $conversation->markReadBy($user);
 
         return redirect()->route('messages.show', $conversation);
+    }
+
+    /**
+     * Lightweight polling endpoint: messages newer than ?after={id}. The open
+     * thread page calls this every few seconds so replies appear without a
+     * refresh — plain HTTP, no websockets.
+     */
+    public function poll(Request $request, Conversation $conversation): JsonResponse
+    {
+        $this->authorize('view', $conversation);
+
+        $user = $request->user();
+
+        $messages = $conversation->messages()
+            ->with('sender')
+            ->where('id', '>', (int) $request->query('after', 0))
+            ->orderBy('id')
+            ->get();
+
+        if ($messages->isNotEmpty()) {
+            // The viewer has this thread open, so what we return is read.
+            $conversation->markReadBy($user);
+        }
+
+        return response()->json([
+            'messages' => $messages->map(fn (Message $m) => [
+                'id' => $m->id,
+                'body' => $m->body,
+                'mine' => $m->sender_id === $user->id,
+                'sender' => $m->sender?->name ?? 'مستخدم محذوف',
+                'role' => $m->sender?->role->label() ?? '',
+                'time' => $m->created_at->format('Y/m/d H:i'),
+            ])->values(),
+        ]);
     }
 
     /** Open (or create) the discussion thread of a placement. */

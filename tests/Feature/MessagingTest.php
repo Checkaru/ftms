@@ -154,6 +154,49 @@ class MessagingTest extends TestCase
         $this->assertSame(0, $field->unreadConversationsCount());
     }
 
+    public function test_poll_returns_only_newer_messages_and_marks_them_read(): void
+    {
+        [$student, $field] = $this->placementWithStakeholders();
+
+        $this->actingAs($student)
+            ->post(route('messages.storeDm'), ['recipient_id' => $field->id, 'body' => 'الأولى']);
+        $conversation = Conversation::whereNull('placement_id')->first();
+        $firstId = $conversation->messages()->first()->id;
+
+        // Nothing newer than the first message yet.
+        $this->actingAs($field)
+            ->getJson(route('messages.poll', $conversation).'?after='.$firstId)
+            ->assertOk()
+            ->assertJsonCount(0, 'messages');
+
+        // Polling from 0 returns it, flags it as not mine, and clears unread.
+        $this->assertSame(1, $field->unreadConversationsCount());
+
+        $this->actingAs($field)
+            ->getJson(route('messages.poll', $conversation).'?after=0')
+            ->assertOk()
+            ->assertJsonCount(1, 'messages')
+            ->assertJsonPath('messages.0.body', 'الأولى')
+            ->assertJsonPath('messages.0.mine', false);
+
+        $this->assertSame(0, $field->unreadConversationsCount());
+    }
+
+    public function test_poll_is_forbidden_for_outsiders(): void
+    {
+        [$student, $field] = $this->placementWithStakeholders();
+
+        $this->actingAs($student)
+            ->post(route('messages.storeDm'), ['recipient_id' => $field->id, 'body' => 'خاص']);
+        $conversation = Conversation::whereNull('placement_id')->first();
+
+        $outsider = User::factory()->student()->create();
+
+        $this->actingAs($outsider)
+            ->getJson(route('messages.poll', $conversation).'?after=0')
+            ->assertForbidden();
+    }
+
     public function test_inbox_lists_threads_and_dms_and_hides_foreign_ones(): void
     {
         [$student, $field, , $placement] = $this->placementWithStakeholders();
