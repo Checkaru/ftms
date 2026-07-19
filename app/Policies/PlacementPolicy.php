@@ -77,4 +77,16 @@ class PlacementPolicy
         return $user->isAcademicSupervisor()
             && $placement->academic_supervisor_id === $user->id;
     }
+
+    /**
+     * Who may open the placement's discussion thread: its stakeholders and
+     * the coordinator — the same circle that can see the placement.
+     */
+    public function discuss(User $user, Placement $placement): bool
+    {
+        return $user->isCoordinator()
+            || $placement->student_id === $user->id
+            || ($user->isFieldSupervisor() && $placement->organization_id === $user->organization_id)
+            || $placement->academic_supervisor_id === $user->id;
+    }
 }

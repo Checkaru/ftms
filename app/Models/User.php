@@ -75,6 +75,98 @@ class User extends Authenticatable
             ->first();
     }
 
+    // Messaging ---------------------------------------------------------------
+
+    /**
+     * Conversations this user may see: their DMs, plus the discussion threads
+     * of every placement they are a stakeholder in (all threads for the
+     * coordinator). Returns the two id sets merged.
+     *
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public function accessibleConversationIds(): \Illuminate\Support\Collection
+    {
+        $dmIds = Conversation::whereNull('placement_id')
+            ->whereHas('participants', fn ($q) => $q->where('user_id', $this->id))
+            ->pluck('id');
+
+        $threadIds = Conversation::whereNotNull('placement_id')
+            ->whereHas('placement', function ($q) {
+                match ($this->role) {
+                    UserRole::Coordinator => null,
+                    UserRole::Student => $q->where('student_id', $this->id),
+                    UserRole::FieldSupervisor => $q->where('organization_id', $this->organization_id),
+                    UserRole::AcademicSupervisor => $q->where('academic_supervisor_id', $this->id),
+                };
+            })
+            ->pluck('id');
+
+        return $dmIds->merge($threadIds)->unique()->values();
+    }
+
+    /** Conversations with unseen messages — the nav badge number. */
+    public function unreadConversationsCount(): int
+    {
+        $ids = $this->accessibleConversationIds();
+
+        if ($ids->isEmpty()) {
+            return 0;
+        }
+
+        return Message::whereIn('conversation_id', $ids)
+            ->where(fn ($q) => $q->where('sender_id', '!=', $this->id)->orWhereNull('sender_id'))
+            ->whereNotExists(function ($q) {
+                $q->selectRaw('1')
+                    ->from('conversation_participants as cp')
+                    ->whereColumn('cp.conversation_id', 'messages.conversation_id')
+                    ->where('cp.user_id', $this->id)
+                    ->whereColumn('cp.last_read_at', '>=', 'messages.created_at');
+            })
+            ->distinct()
+            ->count('conversation_id');
+    }
+
+    /**
+     * Who this user may start a DM with. The graph follows the org/assignment
+     * structure: nobody can cold-message an unrelated user, and the
+     * coordinator can reach everyone.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     */
+    public function contactableUsers(): \Illuminate\Database\Eloquent\Collection
+    {
+        $base = self::query()->where('id', '!=', $this->id)->where('is_active', true);
+
+        return match ($this->role) {
+            UserRole::Coordinator => $base->orderBy('name')->get(),
+
+            UserRole::Student => $base->where(function ($q) {
+                $placements = Placement::where('student_id', $this->id);
+                $q->where('role', UserRole::Coordinator)
+                    ->orWhere(fn ($q) => $q->where('role', UserRole::FieldSupervisor)
+                        ->whereIn('organization_id', (clone $placements)->pluck('organization_id')))
+                    ->orWhereIn('id', (clone $placements)->whereNotNull('academic_supervisor_id')
+                        ->pluck('academic_supervisor_id'));
+            })->orderBy('name')->get(),
+
+            UserRole::FieldSupervisor => $base->where(function ($q) {
+                $placements = Placement::where('organization_id', $this->organization_id);
+                $q->where('role', UserRole::Coordinator)
+                    ->orWhereIn('id', (clone $placements)->pluck('student_id'))
+                    ->orWhereIn('id', (clone $placements)->whereNotNull('academic_supervisor_id')
+                        ->pluck('academic_supervisor_id'));
+            })->orderBy('name')->get(),
+
+            UserRole::AcademicSupervisor => $base->where(function ($q) {
+                $placements = Placement::where('academic_supervisor_id', $this->id);
+                $q->where('role', UserRole::Coordinator)
+                    ->orWhereIn('id', (clone $placements)->pluck('student_id'))
+                    ->orWhere(fn ($q) => $q->where('role', UserRole::FieldSupervisor)
+                        ->whereIn('organization_id', (clone $placements)->pluck('organization_id')));
+            })->orderBy('name')->get(),
+        };
+    }
+
     // Role helpers ------------------------------------------------------------
 
     public function hasRole(UserRole $role): bool

@@ -48,6 +48,8 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-end whitespace-nowrap">
+                                    <a href="{{ route('messages.placement', $placement) }}"
+                                       class="text-gray-500 hover:underline me-3">مناقشة</a>
                                     <a href="{{ route('coordinator.placements.edit', $placement) }}"
                                        class="text-indigo-600 hover:underline">تعديل</a>
                                     <x-delete-button :action="route('coordinator.placements.destroy', $placement)"

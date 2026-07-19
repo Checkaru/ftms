@@ -21,6 +21,8 @@
             ['route' => 'academic.dashboard', 'active' => 'academic.*', 'label' => 'طلابي'],
         ],
     };
+
+    $unreadCount = auth()->user()->unreadConversationsCount();
 @endphp
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-200">
@@ -37,6 +39,13 @@
                             {{ $link['label'] }}
                         </x-nav-link>
                     @endforeach
+
+                    <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
+                        الرسائل
+                        @if ($unreadCount > 0)
+                            <span class="ms-1.5 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs bg-red-600 text-white">{{ $unreadCount }}</span>
+                        @endif
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -80,6 +89,10 @@
                     {{ $link['label'] }}
                 </x-responsive-nav-link>
             @endforeach
+
+            <x-responsive-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
+                الرسائل @if ($unreadCount > 0) ({{ $unreadCount }}) @endif
+            </x-responsive-nav-link>
         </div>
 
         <div class="pt-4 pb-1 border-t border-gray-200">

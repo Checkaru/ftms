@@ -13,6 +13,8 @@ use App\Http\Controllers\Field\ReviewController as FieldReviewController;
 use App\Http\Controllers\Field\PlacementController as FieldPlacementController;
 use App\Http\Controllers\Field\EvaluationController as FieldEvaluationController;
 use App\Http\Controllers\Academic\DashboardController as AcademicDashboardController;
+use App\Http\Controllers\Messaging\ConversationController;
+use App\Http\Controllers\Messaging\MessageController;
 use App\Http\Controllers\Academic\PlacementController as AcademicPlacementController;
 use App\Http\Controllers\Academic\EvaluationController as AcademicEvaluationController;
 use App\Http\Controllers\ProfileController;
@@ -98,6 +100,20 @@ Route::middleware(['auth', 'role:academic_supervisor'])
         Route::get('placements/{placement}', [AcademicPlacementController::class, 'show'])->name('placements.show');
         Route::get('placements/{placement}/evaluation', [AcademicEvaluationController::class, 'edit'])->name('evaluation.edit');
         Route::put('placements/{placement}/evaluation', [AcademicEvaluationController::class, 'update'])->name('evaluation.update');
+    });
+
+// Messaging — every active role. Placement threads are row-gated by
+// ConversationPolicy; DM recipients by the contactable-users rules.
+Route::middleware(['auth', 'role:student,field_supervisor,academic_supervisor,coordinator'])
+    ->prefix('messages')
+    ->name('messages.')
+    ->group(function () {
+        Route::get('/', [ConversationController::class, 'index'])->name('index');
+        Route::get('new', [ConversationController::class, 'create'])->name('create');
+        Route::post('new', [ConversationController::class, 'storeDm'])->name('storeDm');
+        Route::get('placement/{placement}', [ConversationController::class, 'openPlacementThread'])->name('placement');
+        Route::get('{conversation}', [ConversationController::class, 'show'])->name('show');
+        Route::post('{conversation}', [MessageController::class, 'store'])->name('store');
     });
 
 require __DIR__.'/auth.php';

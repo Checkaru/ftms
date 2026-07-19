@@ -7,10 +7,16 @@
                     <span class="text-gray-400 text-sm">#{{ $placement->student->student_number }}</span>
                 @endif
             </h2>
-            <a href="{{ route('academic.evaluation.edit', $placement) }}"
-               class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700">
-                {{ $academicEvaluation ? 'تعديل التقييم' : 'إدخال التقييم' }}
-            </a>
+            <div class="flex gap-3">
+                <a href="{{ route('messages.placement', $placement) }}"
+                   class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50">
+                    مناقشة
+                </a>
+                <a href="{{ route('academic.evaluation.edit', $placement) }}"
+                   class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700">
+                    {{ $academicEvaluation ? 'تعديل التقييم' : 'إدخال التقييم' }}
+                </a>
+            </div>
         </div>
     </x-slot>
 

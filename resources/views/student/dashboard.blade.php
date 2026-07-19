@@ -28,10 +28,16 @@
                                 <span class="text-lg font-normal text-gray-400">ساعة</span>
                             </div>
                         </div>
-                        <a href="{{ route('student.logs.create') }}"
-                           class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700">
-                            + تسجيل يوم
-                        </a>
+                        <div class="flex gap-3">
+                            <a href="{{ route('messages.placement', $placement) }}"
+                               class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50">
+                                مناقشة التدريب
+                            </a>
+                            <a href="{{ route('student.logs.create') }}"
+                               class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700">
+                                + تسجيل يوم
+                            </a>
+                        </div>
                     </div>
 
                     <div class="mt-5">

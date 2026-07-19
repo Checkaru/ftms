@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\AttendanceLog;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\Organization;
 use App\Models\Placement;
 use App\Models\TrainingPeriod;
@@ -71,6 +73,19 @@ class DatabaseSeeder extends Seeder
         $this->seedLogs($p1, $fieldA, ['approved', 'approved', 'approved', 'approved', 'approved', 'pending', 'pending', 'rejected']);
         $this->seedLogs($p2, $fieldB, ['approved', 'approved', 'approved', 'approved', 'pending', 'pending', 'rejected']);
         $this->seedLogs($p3, $fieldA, ['approved', 'approved', 'approved', 'pending', 'pending', 'rejected']);
+
+        // A sample discussion on placement 1 so the messaging UI has content.
+        $thread = Conversation::forPlacement($p1);
+        $this->say($thread, $s1, 'لماذا رُفض سجل يوم 26؟ كنت متواجداً في المؤسسة.');
+        $this->say($thread, $fieldA, 'التوقيت المسجل لا يطابق سجل الدخول عندنا — صحّح وقت الانصراف وأعد الإرسال.');
+    }
+
+    private function say(Conversation $conversation, User $sender, string $body): void
+    {
+        $message = new Message(['body' => $body]);
+        $message->conversation_id = $conversation->id;
+        $message->sender_id = $sender->id;
+        $message->save();
     }
 
     /**
