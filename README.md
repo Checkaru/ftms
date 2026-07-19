@@ -37,7 +37,7 @@ Every role has a **الرسائل** inbox (`/messages`) with an unread badge in 
 - **Placement discussion threads** — one shared thread per placement for its student, field supervisor, academic supervisor, and the coordinator. Opened via the **مناقشة** buttons on the placement-related pages (students also get a مناقشة shortcut in the nav). Typical use: clarifying a rejected log next to the logs themselves instead of on WhatsApp.
 - **Direct messages** — two-person conversations. Reach is role-scoped and enforced server-side: a student can only message their supervisors and the coordinator, supervisors their org/assignment circle, and the coordinator anyone. Nobody can cold-message an unrelated user.
 
-No websockets — messages appear on submit or refresh, consistent with the server-rendered stack.
+An open thread updates itself: the page polls for newer messages every few seconds (plain HTTP + Alpine — no websockets) and appends replies in place without disturbing a draft being typed. Polling pauses while the tab is hidden, and delivered messages are marked as read. The inbox and the nav badge refresh on page navigation.
 
 ## Stack
 
