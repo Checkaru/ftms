@@ -17,11 +17,18 @@ A logged day is `pending` and counts for nothing until the field supervisor at t
 | Role | Arabic | Can do |
 |---|---|---|
 | `student` | طالب | Log own attendance, edit own pending/rejected entries, track progress |
-| `field_supervisor` | المشرف الميداني | Approve/reject logs **for their organisation only**, bulk-approve, submit field evaluation |
+| `field_supervisor` | المشرف الميداني | Approve/reject/revert logs **for their organisation only**, bulk-approve, view their org's students, submit field evaluation |
 | `academic_supervisor` | المشرف الأكاديمي | View assigned students' logs and hours, submit the academic evaluation (the grade) |
 | `coordinator` | منسق التدريب | Manage organisations, periods, placements, users; view reports; export CSV |
 
 There is no public registration — the coordinator creates all accounts.
+
+## What each role sees
+
+- **Student** (`/student`) — progress page answering "how many hours left?" above the fold, plus the daily log form and their entry history (`/student/logs`). Rejected entries show the reason and can be corrected and resubmitted.
+- **Field supervisor** (`/field`) — home **is** the pending queue: grouped by week, one-click approve, reject with a reason, bulk-approve. A second tab, **طلابي** (`/field/students`), lists their organisation's students with approved hours, pending counts, and evaluation status; from there they can open a student's full log history, **revert** a mistaken approval, and submit the **field evaluation**.
+- **Academic supervisor** (`/academic`) — assigned students with approved-hour totals; per student: the read-only log history and the **academic evaluation** form (the grade).
+- **Coordinator** (`/coordinator`) — counts dashboard, CRUD for organisations / periods / placements / users, and reports (`/coordinator/reports`): per-student printable hour report and CSV export.
 
 ## Stack
 
