@@ -14,7 +14,8 @@
             ['route' => 'student.logs.index', 'active' => 'student.logs.*', 'label' => 'سجلاتي'],
         ],
         \App\Enums\UserRole::FieldSupervisor => [
-            ['route' => 'field.dashboard', 'active' => 'field.*', 'label' => 'الرئيسية'],
+            ['route' => 'field.dashboard', 'active' => 'field.dashboard', 'label' => 'قائمة المراجعة'],
+            ['route' => 'field.students.index', 'active' => 'field.students.*', 'label' => 'طلابي'],
         ],
         \App\Enums\UserRole::AcademicSupervisor => [
             ['route' => 'academic.dashboard', 'active' => 'academic.*', 'label' => 'طلابي'],

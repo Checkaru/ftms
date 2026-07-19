@@ -10,6 +10,8 @@ use App\Http\Controllers\Coordinator\DashboardController;
 use App\Http\Controllers\Student\AttendanceLogController as StudentAttendanceLogController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Field\ReviewController as FieldReviewController;
+use App\Http\Controllers\Field\PlacementController as FieldPlacementController;
+use App\Http\Controllers\Field\EvaluationController as FieldEvaluationController;
 use App\Http\Controllers\Academic\DashboardController as AcademicDashboardController;
 use App\Http\Controllers\Academic\PlacementController as AcademicPlacementController;
 use App\Http\Controllers\Academic\EvaluationController as AcademicEvaluationController;
@@ -80,6 +82,11 @@ Route::middleware(['auth', 'role:field_supervisor'])
         Route::post('logs/{log}/approve', [FieldReviewController::class, 'approve'])->name('logs.approve');
         Route::post('logs/{log}/reject', [FieldReviewController::class, 'reject'])->name('logs.reject');
         Route::post('logs/{log}/revert', [FieldReviewController::class, 'revert'])->name('logs.revert');
+
+        Route::get('students', [FieldPlacementController::class, 'index'])->name('students.index');
+        Route::get('students/{placement}', [FieldPlacementController::class, 'show'])->name('students.show');
+        Route::get('students/{placement}/evaluation', [FieldEvaluationController::class, 'edit'])->name('students.evaluation.edit');
+        Route::put('students/{placement}/evaluation', [FieldEvaluationController::class, 'update'])->name('students.evaluation.update');
     });
 
 // Academic supervisor section — assigned students, evaluations, grade.
