@@ -30,6 +30,15 @@ There is no public registration — the coordinator creates all accounts.
 - **Academic supervisor** (`/academic`) — assigned students with approved-hour totals; per student: the read-only log history and the **academic evaluation** form (the grade).
 - **Coordinator** (`/coordinator`) — counts dashboard, CRUD for organisations / periods / placements / users, and reports (`/coordinator/reports`): per-student printable hour report and CSV export.
 
+## Messaging
+
+Every role has a **الرسائل** inbox (`/messages`) with an unread badge in the nav. Two kinds of conversation:
+
+- **Placement discussion threads** — one shared thread per placement for its student, field supervisor, academic supervisor, and the coordinator. Opened via the **مناقشة** buttons on the placement-related pages (students also get a مناقشة shortcut in the nav). Typical use: clarifying a rejected log next to the logs themselves instead of on WhatsApp.
+- **Direct messages** — two-person conversations. Reach is role-scoped and enforced server-side: a student can only message their supervisors and the coordinator, supervisors their org/assignment circle, and the coordinator anyone. Nobody can cold-message an unrelated user.
+
+No websockets — messages appear on submit or refresh, consistent with the server-rendered stack.
+
 ## Stack
 
 - **Laravel 13** (PHP 8.3+), **MySQL 8**
@@ -128,6 +137,7 @@ The suite runs on in-memory SQLite (see `phpunit.xml`) — it never touches your
 | Evaluation rubrics (editable without migration) | `config/training.php` |
 | Approved-hours logic | `Placement::approvedMinutes()` — the only place hours are summed |
 | Reports + CSV export | `app/Http/Controllers/Coordinator/ReportController.php` |
+| Messaging (threads + DMs, contact rules, unread) | `app/Models/Conversation.php`, `app/Policies/ConversationPolicy.php`, `User::contactableUsers()` |
 | Arabic translations | `lang/ar.json`, `lang/ar/` |
 | Print stylesheet (A4 reports) | `resources/css/app.css` (`@media print`) |
 

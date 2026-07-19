@@ -22,6 +22,20 @@
         ],
     };
 
+    // Students get a one-click shortcut to their placement's discussion
+    // thread (they have exactly one active placement). Other roles reach
+    // threads from the student/placement pages, where the context is known.
+    if ($role === \App\Enums\UserRole::Student) {
+        $activePlacement = auth()->user()->activePlacement();
+        if ($activePlacement) {
+            $links[] = [
+                'url' => route('messages.placement', $activePlacement),
+                'active' => 'messages.placement',
+                'label' => 'مناقشة',
+            ];
+        }
+    }
+
     $unreadCount = auth()->user()->unreadConversationsCount();
 @endphp
 
@@ -35,7 +49,7 @@
 
                 <div class="hidden sm:flex sm:gap-6 sm:ms-10">
                     @foreach ($links as $link)
-                        <x-nav-link :href="route($link['route'])" :active="request()->routeIs($link['active'])">
+                        <x-nav-link :href="$link['url'] ?? route($link['route'])" :active="request()->routeIs($link['active'])">
                             {{ $link['label'] }}
                         </x-nav-link>
                     @endforeach
@@ -85,7 +99,7 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             @foreach ($links as $link)
-                <x-responsive-nav-link :href="route($link['route'])" :active="request()->routeIs($link['active'])">
+                <x-responsive-nav-link :href="$link['url'] ?? route($link['route'])" :active="request()->routeIs($link['active'])">
                     {{ $link['label'] }}
                 </x-responsive-nav-link>
             @endforeach
