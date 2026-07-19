@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
         ]);
+
+        // The app always runs behind a proxy when hosted (Cloudflare tunnel,
+        // Nginx, a PaaS router) — trust X-Forwarded-* so generated URLs keep
+        // the https scheme and the real client IP is logged.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
