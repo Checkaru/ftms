@@ -80,6 +80,22 @@ All passwords are `password`:
 
 The seeder creates one open period (180 required hours), two organisations, three placements, and ~20 attendance logs in mixed states. Reset demo data anytime with `php artisan migrate:fresh --seed`.
 
+## Public demo (Cloudflare tunnel)
+
+To let someone outside your machine try the app without any hosting, expose the local server at a temporary public URL:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\demo-tunnel.ps1
+```
+
+It needs [`cloudflared`](https://github.com/cloudflare/cloudflared/releases) on your PATH (single binary, no account required). The script removes any stale `public/hot` file (a leftover `npm run dev` watcher would otherwise make remote visitors' pages load assets from *your* localhost and render unstyled), starts `php artisan serve` if it isn't running, and prints an `https://*.trycloudflare.com` URL.
+
+Notes:
+
+- The URL is random and changes on every start; the site is only up while the script runs and your machine is awake.
+- Run `npm run build` first if you changed any views or CSS — the tunnel serves built assets, not the dev watcher.
+- Demo accounts all use the password `password`, so share the URL privately.
+
 ## Tests
 
 ```bash
